@@ -1,14 +1,18 @@
-# Lab 3: Token Counter for Identifiers, Keywords & Operators Using Flex
+# Lab: Lexical Analyzer Using Flex (Keywords, Identifiers, Operators)
 
 ## Aim
-To develop a lexical analyzer using Flex that scans input source code and:
-- Identifies tokens such as keywords, identifiers, numbers, operators, strings, comments, and delimiters
-- Counts the frequency of each token type
+To design and implement a lexical analyzer using **Flex** that identifies and classifies tokens such as:
+- Keywords
+- Identifiers
+- Numbers
+- Operators
+- Separators
+- Unknown symbols  
+and displays them during scanning of input source code.
 
 ---
 
 ## Software Requirements
-
 - Flex (Lexical Analyzer Generator)
 - GCC Compiler
 - Operating System: Windows / Linux / macOS
@@ -17,82 +21,74 @@ To develop a lexical analyzer using Flex that scans input source code and:
 
 ## Theory
 
-A lexical analyzer is the first phase of a compiler. It reads the source code and converts it into meaningful tokens that are later used by the parser.
+A **lexical analyzer** is the first phase of a compiler. It reads input source code character by character and groups them into meaningful units called **tokens**.
 
-In this experiment:
-- Regular expressions are used to define token patterns
+In this program:
+- Regular expressions define token patterns
 - Flex matches input against these patterns
-- Actions inside `{ }` are executed when a pattern is matched
-- Counters are used to track frequency of each token type
+- Actions inside `{ }` execute when a pattern is matched
+- Each token is printed immediately when detected
 
-This helps in understanding compiler design fundamentals such as:
+This helps in understanding:
 - Token recognition
-- Pattern matching
-- Symbol classification
-- Front-end compiler structure
+- Pattern matching using regular expressions
+- Compiler front-end design
 
 ---
 
-## Program (token_counter.l)
+## Program Description
+
+The program identifies the following tokens:
+
+| Token Type   | Description |
+|--------------|-------------|
+| Keyword      | Reserved words like `int`, `float`, `if`, `else`, `return` |
+| Identifier   | Variable/function names |
+| Number       | Integer values |
+| Operator     | Arithmetic and relational operators |
+| Separator    | Symbols like `; , ( ) { }` |
+| Unknown      | Any unrecognized symbol |
+
+---
+
+## Flex Program (tokenizer.l)
 
 ```lex
 %{
 #include <stdio.h>
 
-int keywordCount = 0;
-int identifierCount = 0;
-int numberCount = 0;
-int stringCount = 0;
-int logicalOpCount = 0;
-int operatorCount = 0;
-int delimiterCount = 0;
-int commentCount = 0;
-int unknownCount = 0;
+int line_no = 1;
 %}
+
+DIGIT      [0-9]
+ID         [a-zA-Z_][a-zA-Z0-9_]*
+KEYWORD    (int|float|if|else|return)
+OP         (==|!=|<=|>=|\+|\-|\*|\/|>|=)
+SEPARATOR  [;,(){}]
 
 %%
 
-\/\/[^\n]* { commentCount++; printf("COMMENT: %s\n", yytext); }
+{KEYWORD}     { printf("Keyword: %s\n", yytext); }
 
-\/\*([^*]|\*+[^*/])*\*+\/ { commentCount++; printf("COMMENT: %s\n", yytext); }
+{ID}          { printf("Identifier: %s\n", yytext); }
 
-int|float|char|double|void|if|else|while|for|return|do|break|continue|switch|case|default
-{ keywordCount++; printf("KEYWORD: %s\n", yytext); }
+{DIGIT}+      { printf("Number: %s\n", yytext); }
 
-[a-zA-Z_][a-zA-Z0-9_]* { identifierCount++; printf("IDENTIFIER: %s\n", yytext); }
+{OP}          { printf("Operator: %s\n", yytext); }
 
-[0-9]+(\.[0-9]+)? { numberCount++; printf("NUMBER: %s\n", yytext); }
+{SEPARATOR}   { printf("Separator: %s\n", yytext); }
 
-\"([^\"\\]|\\.)*\" { stringCount++; printf("STRING: %s\n", yytext); }
+\n            { line_no++; }
 
-&&|\|\| { logicalOpCount++; printf("LOGICAL_OP: %s\n", yytext); }
+[ \t]+        ;
 
-==|!=|<=|>=|<|>|[+\-*/%]=?|= { operatorCount++; printf("OPERATOR: %s\n", yytext); }
-
-[{};,$begin:math:display$$end:math:display$()] { delimiterCount++; printf("DELIMITER: %s\n", yytext); }
-
-[ \t\n]+ ;
-
-. { unknownCount++; printf("UNKNOWN: %s\n", yytext); }
+.             { printf("Unknown symbol: %s\n", yytext); }
 
 %%
 
 int main() {
-    printf("Enter code (Ctrl+D to end input on Mac/Linux):\n");
-
+    printf("Enter code (Ctrl + D to end input):\n");
     yylex();
-
-    printf("\n-- Token Counts --\n");
-    printf("Keywords    : %d\n", keywordCount);
-    printf("Identifiers : %d\n", identifierCount);
-    printf("Numbers     : %d\n", numberCount);
-    printf("Strings     : %d\n", stringCount);
-    printf("Logical Ops : %d\n", logicalOpCount);
-    printf("Operators   : %d\n", operatorCount);
-    printf("Delimiters  : %d\n", delimiterCount);
-    printf("Comments    : %d\n", commentCount);
-    printf("Unknown     : %d\n", unknownCount);
-
     return 0;
 }
 
